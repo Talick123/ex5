@@ -1,4 +1,5 @@
 /*
+Noga: not suure how to end program with SIGINT ? how we can close the shared memory
 
   PRIMES SERVER
 
@@ -21,3 +22,125 @@
     ftok(".", 'p')
 
 */
+
+#define ARR_SIZE 4
+
+// --------include section------------------------
+
+#include <signal.h>
+#include <stdio.h>
+#include <unistd.h> //for pause
+#include <errno.h>
+#include <stdlib.h>
+#include <sys/types.h>
+#include <sys/ipc.h>
+#include <sys/shm.h>
+
+// --------const and enum section------------------------
+
+enum shm_index {PID, CL_PID, NUM, RES};
+enum res {FALSE, TRUE};
+
+// --------prototype section------------------------
+
+void create_shared_mem(key_t *key, int *shm_id, int **shm_ptr);
+void init_data(int *shm_ptr)
+void close_shared_mem(int *shm_id, struct shmid_ds *shm_desc);
+
+// --------main section------------------------
+
+int main()
+{
+    key_t key;
+    int shm_id;
+    int *shm_ptr;
+    struct shmid_ds shm_desc;
+
+    signal(SIGUSR1, catch_sig1);
+
+    create_shared_mem(&key, &shm_id, &shm_ptr);
+    init_data(shm_ptr);
+    handle_requests(shm_ptr);
+
+
+    return EXIT_SUCCESS;
+}
+
+//----------------------------------------------------
+
+void create_shared_mem(key_t *key, int *shm_id, int **shm_ptr)
+{
+    *key = ftok(".", 'p'); // Noga: q or p ?????????????????????
+    if(*key == -1)
+        perrorandexit("ftok failed");
+
+    if((*shm_id = shmget(*key, ARR_SIZE, IPC_CREAT | 0600)) == -1)
+        perrorandexit("shmget failed");
+
+    *shm_ptr = (int*)shmat(*shm_id, NULL, 0);
+    if (!(*shm_ptr))
+        perrorandexit("shmat failed");
+}
+
+//-------------------------------------------------
+
+void init_data(int *shm_ptr)
+{
+    int index;
+
+    //i = 0 curr pid
+    shm_ptr[PID] = getpid();
+
+    // the rest is 0 as default
+    for(index = 1; index < ARR_SIZE; index++)
+        shm_ptr[index] = 0;
+}
+
+//-------------------------------------------------
+
+void handle_requests(int *shm_ptr)
+{
+    while(true)
+    {
+        pause();
+        shm_ptr[RES] = is_prime(shm_ptr[NUM]);
+        kill(shm_ptr[CL_PID], SIGUSR1);
+    }
+}
+
+//-------------------------------------------------
+
+void catch_sig1(signum) {}
+
+void catch_sigint(int signum)
+{
+    exit(EXIT_SUCCESS);
+}
+//-------------------------------------------------
+
+void close_shared_mem(int *shm_id, struct shmid_ds *shm_desc)
+{
+    if(shmctl(*shm_id, IPC_RMID, shm_desc) == -1)
+        perrorandexit("shmctl failed");
+}
+
+//-------------------------------------------------
+
+int is_prime(int num)
+{
+    int i;
+	for(i = 2; i*i < num; i++)
+	{
+		if(num % i == 0)
+			return FALSE;
+	}
+	return TRUE;
+}
+
+//-------------------------------------------------
+
+void perrorandexit(char *msg)
+{
+    perror(msg);
+    exit(EXIT_FAILURE);
+}
