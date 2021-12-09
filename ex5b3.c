@@ -67,7 +67,6 @@ int main()
     connect_to_shared_mem(&key_p, &shm_id_p, &shm_ptr_p, Q_ARR_SIZE);
     read_data(shm_ptr);
 
-
     return EXIT_SUCCESS;
 }
 

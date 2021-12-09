@@ -61,6 +61,7 @@ int main()
     create_shared_mem(&key, &shm_id, &shm_ptr);
     init_data(shm_ptr);
     handle_requests(shm_ptr);
+    close_shared_mem(&shm_id, &shm_desc);
 
 
     return EXIT_SUCCESS;
