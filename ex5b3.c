@@ -20,7 +20,8 @@ Noga: not suure how to end program with SIGINT ? how we can close the shared mem
     ftok(".", 'q') for palindromiut
 */
 
-#define ARR_SIZE 4
+#define P_ARR_SIZE 4
+#define Q_ARR_SIZE 4
 
 // --------include section------------------------
 
@@ -62,8 +63,8 @@ int main()
     signal(SIGUSR1, catch_sig1);
     signal(SIGUSR2, catch_sig2);
 
-    connect_to_shared_mem(&key_q, &shm_id_q, &shm_ptr_q);
-    connect_to_shared_mem(&key_p, &shm_id_p, &shm_ptr_p);
+    connect_to_shared_mem(&key_q, &shm_id_q, &shm_ptr_q, P_ARR_SIZE);
+    connect_to_shared_mem(&key_p, &shm_id_p, &shm_ptr_p, Q_ARR_SIZE);
     read_data(shm_ptr);
 
 
@@ -72,13 +73,13 @@ int main()
 
 //------------------------------------------------
 
-void connect_to_shared_mem(key_t *key, int *shm_id, int **shm_ptr)
+void connect_to_shared_mem(key_t *key, int *shm_id, int **shm_ptr, int size)
 {
     *key = ftok(".", '5');
     if(*key == -1)
         perrorandexit("ftok failed");
 
-    if((*shm_id = shmget(*key, ARR_SIZE, 0600)) == -1)
+    if((*shm_id = shmget(*key, size, 0600)) == -1)
         perrorandexit("shmget failed");
 
     *shm_ptr = (int*)shmat(*shm_id, NULL, 0);
