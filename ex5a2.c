@@ -27,14 +27,20 @@ Note: when 1 child sees full, let other children see too and send signal,
 // --------include section------------------------
 
 
-#include <iostream>
 #include <stdio.h>
 #include <unistd.h> //for pause
 #include <errno.h>
 #include <stdlib.h>
+#include <signal.h>
+#include <sys/types.h>
+#include <sys/ipc.h>
+#include <sys/shm.h>
+#include <stdbool.h>
 
 #define ARR_SIZE 1000
 #define LOCK 4
+
+
 
 // --------const and enum section------------------------
 
@@ -44,11 +50,12 @@ enum STATE {LOCKED, UNLOCKED};
 // --------prototype section------------------------
 
 void check_argv(int argc);
-void connect_to_shared_mem(key_t *key, int *shm_id, int *shm_ptr);
+void connect_to_shared_mem(key_t *key, int *shm_id, int **shm_ptr);
 void init_and_wait(int *shm_ptr, int id);
 void fill_arr(int *shm_ptr, int arr[], int *count);
 void reset_arr(int arr[]);
 bool prime(int num);
+bool new_prime(int *shm_ptr, int curr_ind);
 void print_data(int arr[], int count);
 void perrorandexit(char *msg);
 
@@ -62,8 +69,8 @@ int main(int argc, char *argv[])
     int arr[ARR_SIZE], count = 0;
 
     check_argv(argc);
-    seed(atoi(argv[1]));
-    connect_to_shared_mem(&key, &shm_id, shm_ptr);
+    srand(atoi(argv[1]));
+    connect_to_shared_mem(&key, &shm_id, &shm_ptr);
     init_and_wait(shm_ptr, atoi(argv[1]));
     fill_arr(shm_ptr, arr, &count);
     print_data(arr, count);
@@ -77,32 +84,32 @@ int main(int argc, char *argv[])
 void check_argv(int argc)
 {
 	if(argc != ARGC_SIZE)
-		perror_and_exit("Error! Incorrect number of arguments");
+		perrorandexit("Error! Incorrect number of arguments");
 }
 
 //-------------------------------------------------
 
-void connect_to_shared_mem(key_t *key, int *shm_id, int *shm_ptr);
+void connect_to_shared_mem(key_t *key, int *shm_id, int **shm_ptr)
 {
-    key = ftok(".", '5');
-    if(key == -1)
+    *key = ftok(".", '5');
+    if(*key == -1)
         perrorandexit("ftok failed");
 
-    if((shm_id = shmget(key, ARR_SIZE, 0600)) == -1)
+    if((*shm_id = shmget(*key, ARR_SIZE, 0600)) == -1)
         perrorandexit("shmget failed");
 
-    shm_ptr = (int*)shmat(smh_id, NULL, 0);
-    if (!shm_ptr)
+    *shm_ptr = (int*)shmat(*shm_id, NULL, 0);
+    if (!(*shm_ptr))
         perrorandexit("shmat failed");
 }
 
 //-------------------------------------------------
 
-void init_and_wait(int *shm_ptr, int id);
+void init_and_wait(int *shm_ptr, int id)
 {
     shm_ptr[id] = 1;
 
-    while(shm_ptr[1] = 0 || shm_ptr[2] = 0 || shm_ptr[3] = 0)
+    while((shm_ptr[1] = 0) || (shm_ptr[2] = 0) || (shm_ptr[3] = 0))
         sleep(1);
 }
 
@@ -112,7 +119,7 @@ void fill_arr(int *shm_ptr, int arr[], int *count)
 {
     int num, index = 5;
 
-    reset_arr(primes_count);
+    reset_arr(arr);
 
     while(true)
     {
@@ -139,7 +146,7 @@ void fill_arr(int *shm_ptr, int arr[], int *count)
             arr[num]++;
 
             if(new_prime(shm_ptr, index))
-                *count++;
+                (*count)++;
 
             shm_ptr[LOCK] = UNLOCKED;
         }
