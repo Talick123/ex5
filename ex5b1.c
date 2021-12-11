@@ -109,25 +109,29 @@ void init_data(int *shm_ptr)
 void handle_requests(int *shm_ptr)
 {
     //Tali: changed cause when signal received, true = false;
-    while(true)
+    // while(true)
+    // {
+    for(;;)
     {
-        for(;;)
-        {
-            pause();
-            shm_ptr[RES] = is_prime(shm_ptr[NUM]);
-            kill(shm_ptr[CL_PID], SIGUSR1);
-        }
+        pause();
+        shm_ptr[RES] = is_prime(shm_ptr[NUM]);
+        kill(shm_ptr[CL_PID], SIGUSR1);
     }
+    // }
 }
 
 //-------------------------------------------------
 
 void catch_sig1(int signum) {}
 
+//-------------------------------------------------
+
 void catch_sigint(int signum)
 {
+    //
     exit(EXIT_SUCCESS);
 }
+
 //-------------------------------------------------
 
 void close_shared_mem(int *shm_id, struct shmid_ds *shm_desc)

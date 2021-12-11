@@ -21,7 +21,7 @@ Noga: not suure how to end program with SIGINT ? how we can close the shared mem
 */
 
 #define P_ARR_SIZE 4
-#define Q_ARR_SIZE 4
+#define Q_ARR_SIZE 22
 
 // --------include section------------------------
 
@@ -102,6 +102,7 @@ void connect_to_shared_mem(key_t *key, int *shm_id, int **shm_ptr, int size, cha
 
 void read_data(int *shm_ptr_p, int *shm_ptr_q)
 {
+    // init pid
     char c;
     while(true)
     {
@@ -128,7 +129,7 @@ void p_request(int *shm_ptr_p)
     int num;
     scanf("%d\n", &num);
 
-    shm_ptr_p[P_CL_PID] = getpid(); //Tal: maybe do this one time in read_data
+    shm_ptr_p[P_CL_PID] = getpid(); //Tal: maybe do this one time in read_data //Noga: K
     shm_ptr_p[P_NUM] = num;
 
     kill(shm_ptr_p[P_PID], SIGUSR1);
@@ -156,10 +157,10 @@ void q_request(int *shm_ptr_q)
             shm_ptr_q[i] = num;
     }
 
-    if(i == Q_RES - 1)
-        shm_ptr_q[i] = 0;
+    // if(i == Q_RES - 1)
+    //     shm_ptr_q[i] = 0;
 
-    shm_ptr_q[Q_CL_PID] = getpid(); //Tal: maybe do this one time in read_data
+    shm_ptr_q[Q_CL_PID] = getpid(); //Tal: maybe do this one time in read_data //Noga: K
 
     kill(shm_ptr_q[Q_PID], SIGUSR2);
 
@@ -183,9 +184,17 @@ void get_res_q(int *shm_ptr_q)
     printf("%s Palindrome\n", res ? "Is " : "Is not a ");
 }
 
+//-------------------------------------------------
+
 void catch_sig2(int signum) {}
+
+//-------------------------------------------------
+
 void catch_sig1(int signum) {}
-void catch_sigint(int signum)
+
+//-------------------------------------------------
+
+void catch_sigint(int signum) //?
 {
     exit(EXIT_SUCCESS);
 }

@@ -79,7 +79,7 @@ int main()
 
 void create_shared_mem(key_t *key, int *shm_id, int **shm_ptr)
 {
-    *key = ftok(".", 'q'); // Noga: q or p ? Tali : q
+    *key = ftok(".", 'q');
     if(*key == -1)
         perrorandexit("ftok failed");
 
@@ -111,32 +111,34 @@ void handle_requests(int *shm_ptr)
 {
     int num = 0, i;
 
-    while(true)
+    // while(true)
+    // {
+    for(;;)
     {
-        for(;;)
+        pause(); //will it affect outer loop??
+
+        for(i = 0; i < RES - START_NUM; i++)
         {
-            pause(); //will it affect outer loop??
-
-            //create new array of the intigers
-            for(i = 0; i < RES - START_NUM; i++)
-            {
-                if(shm_ptr[START_NUM + i] == 0)
-                    break;
-                num = num * 10 + shm_ptr[START_NUM + i]; //Tali: change 10 to const?
-            }
-
-            shm_ptr[RES] = is_pal(num);
-            kill(shm_ptr[CL_PID], SIGUSR2);
+            if(shm_ptr[START_NUM + i] == 0)
+                break;
+            num = num * 10 + shm_ptr[START_NUM + i]; //Tali: change 10 to const?
         }
+
+        shm_ptr[RES] = is_pal(num);
+        kill(shm_ptr[CL_PID], SIGUSR2);
     }
+    // }
 }
 
 //-------------------------------------------------
 
 void catch_sig2(int signum) {}
 
+//-------------------------------------------------
+
 void catch_sigint(int signum)
 {
+    //
     exit(EXIT_SUCCESS);
 }
 
