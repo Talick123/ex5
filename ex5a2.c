@@ -39,8 +39,7 @@ Note: when 1 child sees full, let other children see too and send signal,
 
 #define ARR_SIZE 1000
 #define LOCK 4
-
-
+#define START 5
 
 // --------const and enum section------------------------
 
@@ -50,31 +49,26 @@ enum STATE {LOCKED, UNLOCKED};
 // --------prototype section------------------------
 
 void check_argv(int argc);
-void connect_to_shared_mem(key_t *key, int *shm_id, int **shm_ptr);
+void connect_to_shared_mem(int **shm_ptr);
 void init_and_wait(int *shm_ptr, int id);
-void fill_arr(int *shm_ptr, int arr[], int *count);
-void reset_arr(int arr[]);
+void fill_arr(int *shm_ptr);
 bool prime(int num);
 bool new_prime(int *shm_ptr, int curr_ind);
-void print_data(int arr[], int count);
+int count_appearances(int *shm_ptr,int curr_ind);
+void print_data(int new_count,int max,int max_prime);
 void perrorandexit(char *msg);
 
 // --------main section------------------------
 
 int main(int argc, char *argv[])
 {
-    key_t key;
-    int shm_id;
     int *shm_ptr;
-    int arr[ARR_SIZE], count = 0;
 
     check_argv(argc);
     srand(atoi(argv[1]));
-    connect_to_shared_mem(&key, &shm_id, &shm_ptr);
+    connect_to_shared_mem(&shm_ptr);
     init_and_wait(shm_ptr, atoi(argv[1]));
-    fill_arr(shm_ptr, arr, &count);
-    print_data(arr, count);
-
+    fill_arr(shm_ptr);
 
     return EXIT_SUCCESS;
 }
@@ -89,16 +83,19 @@ void check_argv(int argc)
 
 //-------------------------------------------------
 
-void connect_to_shared_mem(key_t *key, int *shm_id, int **shm_ptr)
+void connect_to_shared_mem(int **shm_ptr)
 {
-    *key = ftok(".", '5');
-    if(*key == -1)
+    key_t key;
+    int shm_id;
+
+    key = ftok(".", '5');
+    if(key == -1)
         perrorandexit("ftok failed");
 
-    if((*shm_id = shmget(*key, ARR_SIZE, 0600)) == -1)
+    if((shm_id = shmget(key, ARR_SIZE, 0600)) == -1)
         perrorandexit("shmget failed");
 
-    *shm_ptr = (int*)shmat(*shm_id, NULL, 0);
+    *shm_ptr = (int*)shmat(shm_id, NULL, 0);
     if (!(*shm_ptr))
         perrorandexit("shmat failed");
 }
@@ -115,11 +112,10 @@ void init_and_wait(int *shm_ptr, int id)
 
 //-------------------------------------------------
 
-void fill_arr(int *shm_ptr, int arr[], int *count)
+void fill_arr(int *shm_ptr)
 {
-    int num, index = 5;
-
-    reset_arr(arr);
+    int num, index = START, max, max_prime, new_count, other;
+    max = new_count = 0;
 
     while(true)
     {
@@ -138,28 +134,24 @@ void fill_arr(int *shm_ptr, int arr[], int *count)
             if(index >= ARR_SIZE)
             {
                 kill(shm_ptr[0], SIGUSR1);
-                shm_ptr[LOCK] = 1; //gives other processes chance to see its full
+                shm_ptr[LOCK] = UNLOCKED; //gives other processes chance to see its full
+                print_data(new_count, max, max_prime);
                 return;
             }
 
             shm_ptr[index] = num;
-            arr[num]++;
 
             if(new_prime(shm_ptr, index))
-                (*count)++;
+                new_count++;
+            else if (max < (other = count_appearances(shm_ptr, index)))
+            {
+                max = other;
+                max_prime = shm_ptr[index];
+            }
 
             shm_ptr[LOCK] = UNLOCKED;
         }
     }
-}
-
-//-------------------------------------------------
-
-void reset_arr(int arr[])
-{
-	int index;
-	for(index = 0; index < ARR_SIZE; index++)
-		arr[index] = 0;
 }
 
 //-------------------------------------------------
@@ -180,24 +172,35 @@ bool new_prime(int *shm_ptr, int curr_ind)
 {
     int index;
 
-    for(index = 5; index < curr_ind; index++)
+    for(index = START; index < curr_ind; index++)
         if(shm_ptr[index] == shm_ptr[curr_ind])
             return false;
 
     return true;
 }
 
+//-------------------------------------------------
 
-void print_data(int arr[], int count)
+int count_appearances(int *shm_ptr,int curr_ind)
 {
-    int max_count = 0, prime, index;
+    int counter = 0, index;
 
-    for(index = 0; index < 0; index++)
-        if(arr[index] > max_count)
-            prime = index;
+    for(index = 0; index < curr_ind; index++)
+        if(shm_ptr[index] == shm_ptr[curr_ind])
+            counter++;
 
-    printf("Process %d sent % different new primes. The prime it sent most was %d, %d times ",
-    	   (int)getpid(), count, prime, max_count);
+    return counter;
+}
+
+//-------------------------------------------------
+
+void print_data(int new_count,int max,int max_prime)
+{
+    printf("Process %d sent % different new primes.",
+        (int)getpid(), new_count);
+
+     printf("The prime it sent most was %d, %d times ",
+        	   max_prime, max);
 }
 
 //-------------------------------------------------

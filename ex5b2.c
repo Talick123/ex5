@@ -45,8 +45,13 @@ enum res {FALSE, TRUE};
 // --------prototype section------------------------
 
 void create_shared_mem(key_t *key, int *shm_id, int **shm_ptr);
-void init_data(int *shm_ptr)
+void init_data(int *shm_ptr);
+void handle_requests(int *shm_ptr);
+void catch_sig2(int signum);
+void catch_sigint(int signum);
+int is_pal(int num);
 void close_shared_mem(int *shm_id, struct shmid_ds *shm_desc);
+void perrorandexit(char *msg);
 
 // --------main section------------------------
 
@@ -73,7 +78,7 @@ int main()
 
 void create_shared_mem(key_t *key, int *shm_id, int **shm_ptr)
 {
-    *key = ftok(".", 'q'); // Noga: q or p ?????????????????????
+    *key = ftok(".", 'q'); // Noga: q or p ? Tali : q
     if(*key == -1)
         perrorandexit("ftok failed");
 
@@ -95,7 +100,7 @@ void init_data(int *shm_ptr)
     shm_ptr[PID] = getpid();
 
     // the rest is 0 as default
-    for(index = 1; index < ARR_SIZE; index++)
+    for(index = 1; index < ARR_SIZE; index++) //Tali: necessary?
         shm_ptr[index] = 0;
 }
 
@@ -105,20 +110,23 @@ void handle_requests(int *shm_ptr)
 {
     int num = 0, i;
 
-    while(true)
+    while(1)//Tali: for some reason didnt like true?? (compiler)
     {
-        pause();
-
-        //create new array of the intigers
-        for(i = 0; i < RES - START_NUM; i++)
+        for(;;)
         {
-            if(shm_ptr[START_NUM + i] == 0)
-                break;
-            num = num * 10 + shm_ptr[START_NUM + i];
-        }
+            pause(); //will it affect outer loop??
 
-        shm_ptr[RES] = is_pal(num);
-        kill(shm_ptr[CL_PID], SIGUSR2);
+            //create new array of the intigers
+            for(i = 0; i < RES - START_NUM; i++)
+            {
+                if(shm_ptr[START_NUM + i] == 0)
+                    break;
+                num = num * 10 + shm_ptr[START_NUM + i]; //Tali: change 10 to const?
+            }
+
+            shm_ptr[RES] = is_pal(num);
+            kill(shm_ptr[CL_PID], SIGUSR2);
+        }
     }
 }
 
@@ -150,10 +158,10 @@ int is_pal(int num)
     while (num > 0)
     {
         last_dig = cp_num % 10;
-        rev_num = rev * 10 + last_dig;
+        rev_num = rev_num * 10 + last_dig;
         cp_num = cp_num / 10;
     }
-    return num == rev_num;
+    return (num == rev_num);
 }
 
 //-------------------------------------------------

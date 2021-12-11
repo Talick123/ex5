@@ -44,8 +44,13 @@ enum res {FALSE, TRUE};
 // --------prototype section------------------------
 
 void create_shared_mem(key_t *key, int *shm_id, int **shm_ptr);
-void init_data(int *shm_ptr)
+void init_data(int *shm_ptr);
+void handle_requests(int *shm_ptr);
+void catch_sig1(int signum);
+void catch_sigint(int signum);
+int is_prime(int num);
 void close_shared_mem(int *shm_id, struct shmid_ds *shm_desc);
+void perrorandexit(char *msg);
 
 // --------main section------------------------
 
@@ -57,6 +62,7 @@ int main()
     struct shmid_ds shm_desc;
 
     signal(SIGUSR1, catch_sig1);
+    signal(SIGINT, catch_sigint);
 
     create_shared_mem(&key, &shm_id, &shm_ptr);
     init_data(shm_ptr);
@@ -71,7 +77,7 @@ int main()
 
 void create_shared_mem(key_t *key, int *shm_id, int **shm_ptr)
 {
-    *key = ftok(".", 'p'); // Noga: q or p ?????????????????????
+    *key = ftok(".", 'p'); // Noga: q or p ? Tali: p
     if(*key == -1)
         perrorandexit("ftok failed");
 
@@ -93,7 +99,7 @@ void init_data(int *shm_ptr)
     shm_ptr[PID] = getpid();
 
     // the rest is 0 as default
-    for(index = 1; index < ARR_SIZE; index++)
+    for(index = 1; index < ARR_SIZE; index++) //Tali : Necessary?
         shm_ptr[index] = 0;
 }
 
@@ -101,17 +107,21 @@ void init_data(int *shm_ptr)
 
 void handle_requests(int *shm_ptr)
 {
-    while(true)
+    //Tali: changed cause when signal received, true = false;
+    while(1) //Tali: for some reason didnt like true??
     {
-        pause();
-        shm_ptr[RES] = is_prime(shm_ptr[NUM]);
-        kill(shm_ptr[CL_PID], SIGUSR1);
+        for(;;)
+        {
+            pause();
+            shm_ptr[RES] = is_prime(shm_ptr[NUM]);
+            kill(shm_ptr[CL_PID], SIGUSR1);
+        }
     }
 }
 
 //-------------------------------------------------
 
-void catch_sig1(signum) {}
+void catch_sig1(int signum) {}
 
 void catch_sigint(int signum)
 {
@@ -130,7 +140,7 @@ void close_shared_mem(int *shm_id, struct shmid_ds *shm_desc)
 int is_prime(int num)
 {
     int i;
-	for(i = 2; i*i < num; i++)
+	for(i = 2; i*i <= num; i++)
 	{
 		if(num % i == 0)
 			return FALSE;

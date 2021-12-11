@@ -25,22 +25,23 @@
 #include <sys/types.h>
 #include <sys/ipc.h>
 #include <sys/shm.h>
+#include <stdbool.h>
 
 #define ARR_SIZE 1000
 #define LOCK 4
+#define START 5
 
 // --------const and enum section------------------------
 
 enum STATE {LOCKED, UNLOCKED};
-const int MAX_NUM = 1000;
 
 // --------prototype section------------------------
 
 void catch_sig1(int signum);
-void create_shared_mem(key_t *key, int *shm_id, int **shm_ptr);
+void create_shared_mem(int *shm_id, int **shm_ptr);
 void init_data(int *shm_ptr);
 void read_and_print_data(int *shm_ptr);
-void reset_arr(int arr[]);
+bool new_in_shm(int prime, int curr_ind, int *shm_ptr);
 void close_shared_mem(int *shm_id, struct shmid_ds *shm_desc);
 void perrorandexit(char *msg);
 
@@ -48,14 +49,14 @@ void perrorandexit(char *msg);
 
 int main()
 {
-    key_t key;
-    int shm_id;
+	int shm_id;
     int *shm_ptr;
+
     struct shmid_ds shm_desc;
 
     signal(SIGUSR1, catch_sig1);
 
-    create_shared_mem(&key, &shm_id, &shm_ptr);
+    create_shared_mem(&shm_id, &shm_ptr);
     init_data(shm_ptr);
     pause();
     read_and_print_data(shm_ptr);
@@ -70,13 +71,14 @@ void catch_sig1(int signum){}
 
 //-------------------------------------------------
 
-void create_shared_mem(key_t *key, int *shm_id,int **shm_ptr)
+void create_shared_mem(int *shm_id, int **shm_ptr)
 {
-    *key = ftok(".", '5');
-    if(*key == -1)
+    key_t key;
+    key = ftok(".", '5');
+    if(key == -1)
         perrorandexit("ftok failed");
 
-    if((*shm_id = shmget(*key, ARR_SIZE, IPC_CREAT | 0600)) == -1)
+    if((*shm_id = shmget(key, ARR_SIZE, IPC_CREAT | 0600)) == -1)
         perrorandexit("shmget failed");
 
     *shm_ptr = (int*)shmat(*shm_id, NULL, 0);
@@ -102,22 +104,17 @@ void init_data(int *shm_ptr)
 
 void read_and_print_data(int *shm_ptr)
 {
-    int index, counter = 0, max = 0, min = MAX_NUM;
-    int arr[ARR_SIZE];
-    reset_arr(arr);
+    int index, counter = 1, max = shm_ptr[START], min = shm_ptr[START];
 
-    for(index = 0; index < ARR_SIZE; index++)
+    for(index = START + 1; index < ARR_SIZE; index++)
     {
-        arr[index]++;
+        if(new_in_shm(shm_ptr[index], index, shm_ptr))
+            counter++;
         if(shm_ptr[index] < min)
             min = shm_ptr[index];
         if(shm_ptr[index] > max)
             max = shm_ptr[index];
     }
-
-    for(index = 0; index < ARR_SIZE; index++)
-        if(arr[index] != 0)
-            counter++;
 
     printf("The number of different primes received is: %d\n", counter);
 	printf("The max prime is: %d. The min prime is: %d\n", max, min);
@@ -125,11 +122,15 @@ void read_and_print_data(int *shm_ptr)
 
 //-------------------------------------------------
 
-void reset_arr(int arr[])
+bool new_in_shm(int prime, int curr_ind, int *shm_ptr)
 {
-	int index;
-	for(index = 0; index < ARR_SIZE; index++)
-		arr[index] = 0;
+    int index;
+
+    for(index = START; index < curr_ind; index++)
+        if(prime == shm_ptr[index])
+            return false;
+
+    return true;
 }
 
 //-------------------------------------------------
