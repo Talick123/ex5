@@ -98,6 +98,8 @@ void connect_to_shared_mem(int **shm_ptr)
     *shm_ptr = (int*)shmat(shm_id, NULL, 0);
     if (!(*shm_ptr))
         perrorandexit("shmat failed");
+
+    printf("Shm_id: %d\n", shm_id);
 }
 
 //-------------------------------------------------
@@ -106,7 +108,8 @@ void init_and_wait(int *shm_ptr, int id)
 {
     shm_ptr[id] = 1;
 
-    while((shm_ptr[1] = 0) || (shm_ptr[2] = 0) || (shm_ptr[3] = 0))
+
+    while((shm_ptr[1] == 0) || (shm_ptr[2] == 0) || (shm_ptr[3] == 0))
         sleep(1);
 }
 
@@ -114,21 +117,27 @@ void init_and_wait(int *shm_ptr, int id)
 
 void fill_arr(int *shm_ptr)
 {
-    int num, index = START, max, max_prime, new_count, other;
+    int num, index = START, max, max_prime = 0, new_count, other;
     max = new_count = 0;
 
     while(true)
     {
-        num = rand()%(ARR_SIZE -1) + 2;
+        num = (rand() + 2);
 
         if(prime(num))
         {
+			if(max_prime == 0)
+			{
+				max_prime = num;
+				max++;
+			}
+
             while(shm_ptr[LOCK] == LOCKED)
                 sleep(1);
 
             shm_ptr[LOCK] = LOCKED;
 
-            while(shm_ptr[index] != 0)
+            while(shm_ptr[index] != 0 && index < ARR_SIZE)
                 index++;
 
             if(index >= ARR_SIZE)
@@ -143,10 +152,14 @@ void fill_arr(int *shm_ptr)
 
             if(new_prime(shm_ptr, index))
                 new_count++;
-            else if (max < (other = count_appearances(shm_ptr, index)))
+            else
             {
-                max = other;
-                max_prime = shm_ptr[index];
+				other = count_appearances(shm_ptr, index);
+				if(max < other)
+				{
+					max = other + 1;
+					max_prime = num;
+				}
             }
 
             shm_ptr[LOCK] = UNLOCKED;
@@ -196,10 +209,10 @@ int count_appearances(int *shm_ptr,int curr_ind)
 
 void print_data(int new_count,int max,int max_prime)
 {
-    printf("Process %d sent % different new primes.",
+    printf("Process %d sent %d different new primes.",
         (int)getpid(), new_count);
 
-     printf("The prime it sent most was %d, %d times ",
+     printf("The prime it sent most was %d, %d times \n",
         	   max_prime, max);
 }
 

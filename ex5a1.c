@@ -84,6 +84,8 @@ void create_shared_mem(int *shm_id, int **shm_ptr)
     *shm_ptr = (int*)shmat(*shm_id, NULL, 0);
     if (!(*shm_ptr))
         perrorandexit("shmat failed");
+
+    printf("Shm_id: %d\n", *shm_id);
 }
 
 //-------------------------------------------------

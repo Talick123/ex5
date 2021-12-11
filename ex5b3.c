@@ -144,7 +144,7 @@ void q_request(int *shm_ptr_q)
 
     for(i = Q_START_NUM; i < Q_RES - 1; i++)
     {
-        scanf("%d\n", &num);
+        scanf("%d\n", &num); //Tali: there was a bool here i took out
 
         if(num == 0)
         {
