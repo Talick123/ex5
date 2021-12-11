@@ -35,6 +35,7 @@ Noga: not suure how to end program with SIGINT ? how we can close the shared mem
 #include <sys/types.h>
 #include <sys/ipc.h>
 #include <sys/shm.h>
+#include <stdbool.h>
 
 // --------const and enum section------------------------
 
@@ -108,7 +109,7 @@ void init_data(int *shm_ptr)
 void handle_requests(int *shm_ptr)
 {
     //Tali: changed cause when signal received, true = false;
-    while(1) //Tali: for some reason didnt like true??
+    while(true)
     {
         for(;;)
         {

@@ -33,6 +33,7 @@ Noga: not suure how to end program with SIGINT ? how we can close the shared mem
 #include <sys/types.h>
 #include <sys/ipc.h>
 #include <sys/shm.h>
+#include <stdbool.h>
 
 // --------const and enum section------------------------
 
@@ -102,7 +103,7 @@ void connect_to_shared_mem(key_t *key, int *shm_id, int **shm_ptr, int size, cha
 void read_data(int *shm_ptr_p, int *shm_ptr_q)
 {
     char c;
-    while(1) //Tali: for some reason compiler doesnt like true
+    while(true)
     {
         c = getchar();
         switch (c) {
@@ -144,7 +145,7 @@ void q_request(int *shm_ptr_q)
 
     for(i = Q_START_NUM; i < Q_RES - 1; i++)
     {
-        scanf("%d\n", &num); //Tali: there was a bool here i took out
+        scanf("%d\n", &num);
 
         if(num == 0)
         {

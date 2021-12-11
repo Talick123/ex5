@@ -110,7 +110,7 @@ void init_and_wait(int *shm_ptr, int id)
 
 
     while((shm_ptr[1] == 0) || (shm_ptr[2] == 0) || (shm_ptr[3] == 0))
-        sleep(1);
+        sleep(0.1);
 }
 
 //-------------------------------------------------
