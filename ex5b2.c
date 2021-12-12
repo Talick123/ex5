@@ -110,7 +110,6 @@ void init_data(int *shm_ptr)
 void handle_requests(int *shm_ptr)
 {
     int num = 0, i;
-    int arr[];
     int size = 0;
     // while(true)
     // {
@@ -122,9 +121,7 @@ void handle_requests(int *shm_ptr)
         {
             if(shm_ptr[START_NUM + i] == 0)
                 break;
-            arr[i] = shm_ptr[START_NUM + i];
             size++;
-            //num = num * 10 + shm_ptr[START_NUM + i]; //Tali: change 10 to const?
         }
 
         shm_ptr[RES] = is_pal(arr, size);
@@ -155,29 +152,13 @@ void close_shared_mem(int *shm_id, struct shmid_ds *shm_desc)
 
 //-------------------------------------------------
 
-// int is_pal(int num)
-// {
-
-    // int cp_num = num;
-    // int rev_num = 0;
-    // int last_dig;
-    //
-    // while (num > 0)
-    // {
-    //     last_dig = cp_num % 10;
-    //     rev_num = rev_num * 10 + last_dig;
-    //     cp_num = cp_num / 10;
-    // }
-    // return (num == rev_num);
-// }
-
 void is_pal(int arr[], int n)
 {
     // Initialise flag to zero.
     int flag = 1;
 
     // Loop till array size n/2.
-    for (int i = 0; i <= n / 2 && n != 0; i++)
+    for (int i = START_NUM; i <= n / 2 && n != 0; i++)
     {
         // Check if first and last element are different
         // Then set flag to 1.
