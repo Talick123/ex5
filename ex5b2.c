@@ -64,14 +64,14 @@ int main()
 
     create_shared_mem();
     init_data();
-    handle_requests(r);
+    handle_requests();
 
     return EXIT_SUCCESS;
 }
 
 //----------------------------------------------------
 
-void create_shared_mem)
+void create_shared_mem()
 {
     key_t key;
 
@@ -103,9 +103,9 @@ void init_data()
 
 //-------------------------------------------------
 
-void handle_requests(r)
+void handle_requests()
 {
-    int num = 0, i;
+    int i;
     int size = 0;
 
     for(;;)
@@ -119,7 +119,7 @@ void handle_requests(r)
             size++;
         }
 
-        shm_ptr[RES] = is_pal(arr, size);
+        shm_ptr[RES] = is_pal(size);
         kill(shm_ptr[CL_PID], SIGUSR2);
     }
 
@@ -146,7 +146,7 @@ void catch_sigint(int signum)
 
 //-------------------------------------------------
 
-void is_pal(int arr[], int n)
+int is_pal(int n)
 {
     // Initialise flag to zero.
     int flag = 1;
@@ -156,7 +156,7 @@ void is_pal(int arr[], int n)
     {
         // Check if first and last element are different
         // Then set flag to 1.
-        if (arr[i] != arr[n - i - 1]) {
+        if (shm_ptr[i] != shm_ptr[n - i - 1]) {
             flag = 0;
             break;
         }

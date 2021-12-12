@@ -37,7 +37,7 @@ Noga: not suure how to end program with SIGINT ? how we can close the shared mem
 
 // --------const and enum section------------------------
 
-//Tali: i think we can take out pid repeats here..maybe into own enum?
+
 enum shm_index_p {P_PID = 0, P_CL_PID = 1, P_NUM = 2, P_RES = 3};
 enum shm_index_q {Q_PID = 0, Q_CL_PID = 1, Q_START_NUM = 2, Q_RES = 21};
 enum res {FALSE, TRUE};
@@ -190,7 +190,8 @@ void catch_sig1(int signum)
 
 void catch_sigint(int signum)
 {
-    shmdt(shm_ptr);
+    shmdt(shm_ptr_p);
+    shmdt(shm_ptr_q);
     exit(EXIT_SUCCESS);
 }
 
