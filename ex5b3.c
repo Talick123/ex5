@@ -66,8 +66,8 @@ int main()
     signal(SIGUSR1, catch_sig1);
     signal(SIGUSR2, catch_sig2);
 
-    connect_to_shared_mem(&key_q, &shm_id_q, &shm_ptr_q, P_ARR_SIZE, 'p');
-    connect_to_shared_mem(&key_p, &shm_id_p, &shm_ptr_p, Q_ARR_SIZE, 'q');
+    connect_to_shared_mem(&key_q, &shm_id_q, &shm_ptr_q, Q_ARR_SIZE, 'q');
+    connect_to_shared_mem(&key_p, &shm_id_p, &shm_ptr_p, P_ARR_SIZE, 'p');
     read_data();
 
     return EXIT_SUCCESS;
@@ -101,6 +101,7 @@ void read_data()
     while(true)
     {
         c = getchar();
+
         switch (c) {
             //read num to check is prime
             case 'p':
@@ -120,13 +121,15 @@ void read_data()
 
 void p_request()
 {
+
     int num;
-    scanf("%d\n", &num);
+
+    scanf(" %d", &num);
+    getchar();
 
     shm_ptr_p[P_NUM] = num;
 
     kill(shm_ptr_p[P_PID], SIGUSR1);
-
     pause();
     get_res_p();
 }
@@ -139,7 +142,7 @@ void q_request()
 
     for(i = Q_START_NUM; i < Q_RES - 1; i++)
     {
-        scanf("%d\n", &num);
+        scanf(" %d", &num);
 
         if(num == 0)
         {
@@ -149,7 +152,7 @@ void q_request()
         else
             shm_ptr_q[i] = num;
     }
-
+	getchar();
     kill(shm_ptr_q[Q_PID], SIGUSR2);
 
     pause();
@@ -160,16 +163,16 @@ void q_request()
 
 void get_res_p()
 {
-    int res = shm_ptr_p[P_RES];
-    printf("%s Prime\n", res ? "Is" : "Is not a ");
+    int result = shm_ptr_p[P_RES];
+    printf("%s Prime\n", result ? "Is" : "Is not a ");
 }
 
 //------------------------------------------------
 
 void get_res_q()
 {
-    int res = shm_ptr_q[Q_RES];
-    printf("%s Palindrome\n", res ? "Is " : "Is not a ");
+    int result = shm_ptr_q[Q_RES];
+    printf("%s Palindrome\n", result ? "Is " : "Is not a ");
 }
 
 //-------------------------------------------------

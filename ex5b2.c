@@ -106,10 +106,11 @@ void init_data()
 void handle_requests()
 {
     int i;
-    int size = 0;
+    int size;
 
     for(;;)
     {
+		size = 0;
         pause();
 
         for(i = 0; i < RES - START_NUM; i++)
@@ -120,6 +121,7 @@ void handle_requests()
         }
 
         shm_ptr[RES] = is_pal(size);
+
         kill(shm_ptr[CL_PID], SIGUSR2);
     }
 

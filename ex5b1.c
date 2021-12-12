@@ -106,8 +106,11 @@ void handle_requests()
 {
     for(;;)
     {
+
         pause();
+
         shm_ptr[RES] = is_prime(shm_ptr[NUM]);
+
         kill(shm_ptr[CL_PID], SIGUSR1);
     }
 }
