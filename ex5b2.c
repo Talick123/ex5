@@ -112,7 +112,7 @@ void init_data()
     shm_ptr[PID] = getpid();
 
     // the rest is 0 as default
-    for(index = 1; index < ARR_SIZE; index++) 
+    for(index = 1; index < ARR_SIZE; index++)
         shm_ptr[index] = 0;
 }
 
@@ -167,11 +167,11 @@ int is_pal(int n)
     int flag = 1;
 
     // Loop till array size n/2.
-    for (int i = START_NUM; i <= n / 2 && n != 0; i++)
+    for (int i = 0; i <= n / 2 && n != 0; i++)
     {
         // Check if first and last element are different
         // Then set flag to 1.
-        if (shm_ptr[i] != shm_ptr[n - i - 1]) {
+        if (shm_ptr[START_NUM + i] != shm_ptr[(START_NUM + n - 1)- i ]) {
             flag = 0;
             break;
         }
