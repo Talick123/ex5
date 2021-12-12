@@ -1,0 +1,70 @@
+
+File: ex5a1.c ex5a2.c
+Generate and Collect Primes from Shared Memory
+=====================================================================
+Written by: Tali Kalev, ID:208629691, Login: talikal
+		and	Noga Levy, ID:315260927, Login: levyno
+
+This program runs with 4 different processes. Three processes that generates
+random numbers, when the number is prime the process sends it to main process adds to shared memory.
+When the filling processes sees that the shared memory is full, it sends signal to main
+program, prints out data and ends. The main proccess wakes, counts how many different
+primes are in shared memory, finds the smallest and biggest number, prints, closes
+shared memory and ends.
+
+Compile: gcc -Wall ex5a1.c -o ex5a1
+         gcc -Wall ex5a2.c -o ex5a2
+     (ex5a1 = main process, ex5a2 = sub process)
+
+Run: for start run the main process.
+    Then, run 3 times the sub processes and send to the vector
+    arguments the number of process (1-3):
+        ./ex5a1
+        ./ex5a2 1
+        ./ex5a2 2
+        ./ex5a2 3
+
+Input: No Input
+
+Output:
+    From main process (ex5a1) = minimum prime, max prime and number of
+    different numbers in the array.
+    Example: The number of different primes received is: 168
+             The max prime is: 997. The min primes is: 2
+    From sub process (ex5a2) = prime number they send the most to main process
+    Example: Process 1101373 sent the prime 233, 14 times
+
+File: ex5b1.c ex5b2.c ex5b3.c
+Interactions Between Prime Checker, Palindrome Checker and Client
+=====================================================================
+Written by: Tali Kalev, ID:208629691, Login: talikal
+		and	Noga Levy, ID:315260927, Login: levyno
+
+ex5b1: creates shared memory, goes to sleep, wakes up via SIGUSR1, checks
+number inputed into shared memory, puts into shared memory if num is prime or not.
+ex5b2: creates shared memory, goes to sleep, wakes up via SIGUSR2, checks series
+of numbers inputed into shared memory, puts into shared memory if series is palindrome
+or not.
+ex5b3: connects to both shared memories created. reads from user p or q, and then
+number of series of numbers respectively. Enters into the appropriate shared memory
+the data and waits for response. Prints result onto screen.
+
+Compile: gcc -Wall ex5b1.c -o ex5b1
+         gcc -Wall ex5b2.c -o ex5b2
+        gcc -Wall ex5b3.c -o ex5b3
+     (ex5b1 = prime checker, ex5b2 = palindrome checker, ex5b3 = client)
+
+Run: run all three programs one after the other
+        ./ex5b1
+        ./ex5b2
+        ./ex5b3
+
+Input: Only ex5b3 receives input. If input is p and then number, ex5b1 checks if
+        it is prime. If input is q and then a series of numbers ending in 0, ex5b2
+        checks if it is a palindrome.
+        Example: p
+                 7
+
+Output: ex5c3 prints answer of other programs appropriately
+        Example:
+        Is Prime

@@ -1,27 +1,42 @@
 /*
-  - via argument vector receives 1 2 or 3
-  - seed(atoi(argv[1]);
 
-  - connects to the shared memory
-  - in arr[atoi(argv[1])] = 1
-  - when cell 1 2 and 3 in array = 1, then go into loop
-  - in a loop the program will:
-      - generates number
-      - if number is prime, checks if lock = 1 (0 = locked), changes it to 0,
-       adds to array in shared memory
-      - counts how many new primes it added and how many times
-        that number that appeared the most times (same as last targil)
-        (helper array)
-      - changes lock = 1
-      -if array is full, prints data, sends signal to array[0]
+File: ex5a1.c ex5a2.c
+Generate and Collect Primes from Shared Memory
+=====================================================================
+Written by: Tali Kalev, ID:208629691, Login: talikal
+		and	Noga Levy, ID:315260927, Login: levyno
 
+This program runs with 4 different processes. Three processes that generates
+random numbers, when the number is prime the process sends it to main process adds to shared memory.
+When the filling processes sees that the shared memory is full, it sends signal to main
+program, prints out data and ends. The main proccess wakes, counts how many different
+primes are in shared memory, finds the smallest and biggest number, prints, closes
+shared memory and ends.
 
-Note: when 1 child sees full, let other children see too and send signal,
-  however father only needs to receive one
+Compile: gcc -Wall ex5a1.c -o ex5a1
+         gcc -Wall ex5a2.c -o ex5a2
+     (ex5a1 = main process, ex5a2 = sub process)
+
+Run: for start run the main process.
+    Then, run 3 times the sub processes and send to the vector
+    arguments the number of process (1-3):
+        ./ex5a1
+        ./ex5a2 1
+        ./ex5a2 2
+        ./ex5a2 3
+
+Input: No Input
+
+Output:
+    From main process (ex5a1) = minimum prime, max prime and number of
+    different numbers in the array.
+    Example: The number of different primes received is: 168
+             The max prime is: 997. The min primes is: 2
+    From sub process (ex5a2) = prime number they send the most to main process
+    Example: Process 1101373 sent the prime 233, 14 times
 
 
 */
-
 
 
 // --------include section------------------------
@@ -108,7 +123,6 @@ void init_and_wait(int *shm_ptr, int id)
 {
     shm_ptr[id] = 1;
 
-
     while((shm_ptr[1] == 0) || (shm_ptr[2] == 0) || (shm_ptr[3] == 0))
         sleep(0.1);
 }
@@ -169,7 +183,7 @@ void fill_arr(int *shm_ptr)
 }
 
 //-------------------------------------------------
-
+//check is prime
 bool prime(int num)
 {
 	int i;

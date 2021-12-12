@@ -1,27 +1,43 @@
 /*
-Noga: not suure how to end program with SIGINT ? how we can close the shared memory
 
-  PRIMES SERVER
+File: ex5b1.c ex5b2.c ex5b3.c
+Interactions Between Prime Checker, Palindrome Checker and Client
+=====================================================================
+Written by: Tali Kalev, ID:208629691, Login: talikal
+		and	Noga Levy, ID:315260927, Login: levyno
 
-  - allocates shared memory with 4 cells
-  - cell 0 = getpid();
-  - cell 1 = client will enter its pid
-  - cell 2 = client will enter number to check its primenizatzia
-  - cell 3 = server will enter answer to primenizatzia (1 or 0)
+ex5b1: creates shared memory, goes to sleep, wakes up via SIGUSR1, checks
+number inputed into shared memory, puts into shared memory if num is prime or not.
+ex5b2: creates shared memory, goes to sleep, wakes up via SIGUSR2, checks series
+of numbers inputed into shared memory, puts into shared memory if series is palindrome
+or not.
+ex5b3: connects to both shared memories created. reads from user p or q, and then
+number of series of numbers respectively. Enters into the appropriate shared memory
+the data and waits for response. Prints result onto screen.
 
-  - server runs in an infinite loop
-  - in the loop the server:
-        - goes to sleep until receive SIGUSR1
-        - after receiving signal, wakes, checks primenizatzia of number
-        in cell in 2
-        - puts answer in cell 3
-        - sends SIGUSR1 to client
+Compile: gcc -Wall ex5b1.c -o ex5b1
+         gcc -Wall ex5b2.c -o ex5b2
+        gcc -Wall ex5b3.c -o ex5b3
+     (ex5b1 = prime checker, ex5b2 = palindrome checker, ex5b3 = client)
 
-    - program ends when SIGINT received  (release memory also)
+Run: run all three programs one after the other
+        ./ex5b1
+        ./ex5b2
+        ./ex5b3
 
-    ftok(".", 'p')
+Input: Only ex5b3 receives input. If input is p and then number, ex5b1 checks if
+        it is prime. If input is q and then a series of numbers ending in 0, ex5b2
+        checks if it is a palindrome.
+        Example: p
+                 7
+
+Output: ex5c3 prints answer of other programs appropriately
+        Example:
+        Is Prime
 
 */
+
+// prime server
 
 #define ARR_SIZE 4
 
@@ -92,11 +108,10 @@ void init_data()
 {
     int index;
 
-    //i = 0 curr pid
     shm_ptr[PID] = getpid();
 
     // the rest is 0 as default
-    for(index = 1; index < ARR_SIZE; index++) //Tali : Necessary?
+    for(index = 1; index < ARR_SIZE; index++)
         shm_ptr[index] = 0;
 }
 
@@ -106,12 +121,11 @@ void handle_requests()
 {
     for(;;)
     {
-
         pause();
 
         shm_ptr[RES] = is_prime(shm_ptr[NUM]);
 
-        kill(shm_ptr[CL_PID], SIGUSR1);
+        kill(shm_ptr[CL_PID], SIGUSR1); //send to client
     }
 }
 
