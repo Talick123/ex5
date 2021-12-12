@@ -42,58 +42,54 @@ Noga: not suure how to end program with SIGINT ? how we can close the shared mem
 
 enum shm_index {PID = 0, CL_PID = 1, START_NUM = 2, RES = 21};
 enum res {FALSE, TRUE};
+int shm_id;
+int *shm_ptr;
 
 // --------prototype section------------------------
 
-void create_shared_mem(key_t *key, int *shm_id, int **shm_ptr);
-void init_data(int *shm_ptr);
-void handle_requests(int *shm_ptr);
+void create_shared_mem();
+void init_data();
+void handle_requests();
 void catch_sig2(int signum);
 void catch_sigint(int signum);
 int is_pal(int num);
-void close_shared_mem(int *shm_id, struct shmid_ds *shm_desc);
 void perrorandexit(char *msg);
 
 // --------main section------------------------
 
 int main()
 {
-    key_t key;
-    int shm_id;
-    int *shm_ptr;
-    struct shmid_ds shm_desc;
-
     signal(SIGUSR2, catch_sig2);
     signal(SIGINT, catch_sigint);
 
-    create_shared_mem(&key, &shm_id, &shm_ptr);
-    init_data(shm_ptr);
-    handle_requests(shm_ptr);
-    close_shared_mem(&shm_id, &shm_desc);
-
+    create_shared_mem();
+    init_data();
+    handle_requests(r);
 
     return EXIT_SUCCESS;
 }
 
 //----------------------------------------------------
 
-void create_shared_mem(key_t *key, int *shm_id, int **shm_ptr)
+void create_shared_mem)
 {
-    *key = ftok(".", 'q');
-    if(*key == -1)
+    key_t key;
+
+    key = ftok(".", 'q');
+    if(key == -1)
         perrorandexit("ftok failed");
 
-    if((*shm_id = shmget(*key, ARR_SIZE, IPC_CREAT | 0600)) == -1)
+    if((shm_id = shmget(key, ARR_SIZE, IPC_CREAT | 0600)) == -1)
         perrorandexit("shmget failed");
 
-    *shm_ptr = (int*)shmat(*shm_id, NULL, 0);
-    if (!(*shm_ptr))
+    shm_ptr = (int*)shmat(shm_id, NULL, 0);
+    if (!shm_ptr)
         perrorandexit("shmat failed");
 }
 
 //-------------------------------------------------
 
-void init_data(int *shm_ptr)
+void init_data()
 {
     int index;
 
@@ -107,15 +103,14 @@ void init_data(int *shm_ptr)
 
 //-------------------------------------------------
 
-void handle_requests(int *shm_ptr)
+void handle_requests(r)
 {
     int num = 0, i;
     int size = 0;
-    // while(true)
-    // {
+
     for(;;)
     {
-        pause(); //will it affect outer loop??
+        pause();
 
         for(i = 0; i < RES - START_NUM; i++)
         {
@@ -127,27 +122,26 @@ void handle_requests(int *shm_ptr)
         shm_ptr[RES] = is_pal(arr, size);
         kill(shm_ptr[CL_PID], SIGUSR2);
     }
-    // }
+
 }
 
 //-------------------------------------------------
 
-void catch_sig2(int signum) {}
+void catch_sig2(int signum)
+{
+    signal(SIGUSR2, catch_sig2);
+}
 
 //-------------------------------------------------
 
 void catch_sigint(int signum)
 {
-    //
-    exit(EXIT_SUCCESS);
-}
+    shmdt(shm_ptr);
 
-//-------------------------------------------------
-
-void close_shared_mem(int *shm_id, struct shmid_ds *shm_desc)
-{
-    if(shmctl(*shm_id, IPC_RMID, shm_desc) == -1)
+    if(shmctl(shm_id, IPC_RMID, NULL) == -1)
         perrorandexit("shmctl failed");
+
+    exit(EXIT_SUCCESS);
 }
 
 //-------------------------------------------------

@@ -42,7 +42,7 @@ void create_shared_mem(int *shm_id, int **shm_ptr);
 void init_data(int *shm_ptr);
 void read_and_print_data(int *shm_ptr);
 bool new_in_shm(int prime, int curr_ind, int *shm_ptr);
-void close_shared_mem(int *shm_id, struct shmid_ds *shm_desc);
+void close_shared_mem(int *shm_id, int *shm_ptr);
 void perrorandexit(char *msg);
 
 // --------main section------------------------
@@ -52,15 +52,13 @@ int main()
 	int shm_id;
     int *shm_ptr;
 
-    struct shmid_ds shm_desc;
-
     signal(SIGUSR1, catch_sig1);
 
     create_shared_mem(&shm_id, &shm_ptr);
     init_data(shm_ptr);
     pause();
     read_and_print_data(shm_ptr);
-    close_shared_mem(&shm_id, &shm_desc);
+    close_shared_mem(&shm_id, shm_ptr);
 
     return EXIT_SUCCESS;
 }
@@ -137,9 +135,11 @@ bool new_in_shm(int prime, int curr_ind, int *shm_ptr)
 
 //-------------------------------------------------
 
-void close_shared_mem(int *shm_id, struct shmid_ds *shm_desc)
+void close_shared_mem(int *shm_id, int *shm_ptr)
 {
-    if(shmctl(*shm_id, IPC_RMID, shm_desc) == -1)
+	shmdt(shm_ptr);
+
+    if(shmctl(*shm_id, IPC_RMID, NULL) == -1)
         perrorandexit("shmctl failed");
 }
 

@@ -144,6 +144,7 @@ void fill_arr(int *shm_ptr)
             {
                 kill(shm_ptr[0], SIGUSR1);
                 shm_ptr[LOCK] = UNLOCKED; //gives other processes chance to see its full
+                shmdt(shm_ptr);
                 print_data(new_count, max, max_prime);
                 return;
             }
